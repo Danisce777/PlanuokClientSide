@@ -14,20 +14,26 @@ struct TransactionRequest: Codable, Identifiable {
     let transactionId: Int
     let description: String
     let amount: Double
-    let date: Date
-    let category: String
-    let type: TransactionType
-    
-    
+    let creationDate: Date
+    let transactionCategory: String
+    let transactionType: TransactionType
     
     var id: Int {
         return transactionId
     }
     
-    
     enum TransactionType: String, Codable  {
         case income
         case expense
     }
- 
+    
+    enum CodingKeys: String, CodingKey {
+        case transactionId
+        case description
+        case amount
+        case creationDate
+        case transactionCategory
+        case transactionType
+    }
+
 }

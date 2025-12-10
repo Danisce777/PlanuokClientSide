@@ -28,10 +28,7 @@ struct InputView: View {
                 TextField(placeholder, text: $text)
                     .font(.system(size: 14))
             }
-            
             Divider()
-            
-            
         }
     }
 }

@@ -14,10 +14,9 @@ struct Transaction: Codable {
     let transactionId: Int64?
     let description: String
     let amount: Double
-    let date: Date
-    let category: String
-    let type: TransactionType
- 
+    let creationDate: Date
+    let transactionCategory: String
+    let transactionType: TransactionType
 }
 
 enum TransactionType: String, Codable  {

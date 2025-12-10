@@ -15,7 +15,6 @@ struct UsersView: View {
         
         NavigationStack{
             
-            
             List(networkManager.users){ user in
                 HStack{
                     Text(user.username)

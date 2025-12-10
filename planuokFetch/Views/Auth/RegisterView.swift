@@ -10,7 +10,7 @@ import SwiftUI
 
 struct RegisterView: View {
     
-    @StateObject private var networkManager = NetworkManager()
+    @EnvironmentObject var networkManager: NetworkManager
     @Environment(\.dismiss) var dismiss
 
     @State private var username: String = ""
@@ -18,106 +18,117 @@ struct RegisterView: View {
     @State private var email: String = ""
     @State private var confirmPassword: String = ""
     
+    @State private var errorMessage = ""
+    @State private var isLoading = false
+    @State private var showingLogin = false
+
     var body: some View {
+        NavigationStack {
         
-        VStack {
-            Image("Track-Image")
-                .resizable()
-                .scaledToFill()
-                .frame(width: 120, height: 140)
-                .padding(.vertical, 32)
-            
-            VStack(spacing: 24) {
+            VStack {
+                Image("Track-Image")
+                    .resizable()
+                    .scaledToFill()
+                    .frame(width: 120, height: 140)
+                    .padding(.vertical, 32)
                 
-                InputView(
-                    text: $username,
-                    title: "Username",
-                    placeholder: "Enter your username")
-                .autocapitalization(.none)
-                .autocorrectionDisabled()
-
-                InputView(
-                    text: $email,
-                    title: "Email",
-                    placeholder: "name@example.com")
-                .keyboardType(.emailAddress)
-                .autocapitalization(.none)
-                
-                InputView(
-                    text: $password,
-                    title: "Password",
-                    placeholder: "Enter your password",
-                    isSecureField: true)
-                .autocorrectionDisabled()
-                
-                
-                InputView(
-                    text: $confirmPassword,
-                    title: "Confirm Password",
-                    placeholder: "Confirm your password",
-                    isSecureField: true)
-                
-                if !password.isEmpty && !confirmPassword.isEmpty {
-                    if password == confirmPassword {
-                        Image(systemName: "checkmark.circle.fill")
-                            .imageScale(.large)
-                            .fontWeight(.bold)
-                            .foregroundColor(Color(.systemGreen))
-                    } else {
-                        Image(systemName: "xmark.circle.fill")
-                            .imageScale(.large)
-                            .fontWeight(.bold)
-                            .foregroundColor(Color(.systemRed))
+                VStack(spacing: 24) {
+                    
+                    InputView(
+                        text: $username,
+                        title: "Username",
+                        placeholder: "Enter your username")
+                    .autocapitalization(.none)
+                    .autocorrectionDisabled()
+                    
+                    InputView(
+                        text: $email,
+                        title: "Email",
+                        placeholder: "name@example.com")
+                    .keyboardType(.emailAddress)
+                    .autocapitalization(.none)
+                    
+                    InputView(
+                        text: $password,
+                        title: "Password",
+                        placeholder: "Enter your password",
+                        isSecureField: true)
+                    .autocorrectionDisabled()
+                    .textContentType(.newPassword)
+                    
+                    InputView(
+                        text: $confirmPassword,
+                        title: "Confirm Password",
+                        placeholder: "Confirm your password",
+                        isSecureField: true)
+                    .textContentType(.newPassword)
+                    
+                    if !password.isEmpty && !confirmPassword.isEmpty {
+                        if password == confirmPassword {
+                            Image(systemName: "checkmark.circle.fill")
+                                .imageScale(.large)
+                                .fontWeight(.bold)
+                                .foregroundColor(Color(.systemGreen))
+                        } else {
+                            Image(systemName: "xmark.circle.fill")
+                                .imageScale(.large)
+                                .fontWeight(.bold)
+                                .foregroundColor(Color(.systemRed))
+                        }
                     }
                 }
-            }
-            .padding(.horizontal, 12)
-            
-            Button {
-                     networkManager.postUser(
-                        username: username,
-                        password: password,
-                        email: email)
+                .padding(.horizontal, 12)
                 
-                username = ""
-                email = ""
-                password = ""
-                confirmPassword = ""
-            } label: {
-                HStack {
-                    Text("Create new Account")
-                        .fontWeight(.semibold)
-                    Image(systemName: "arrow.right")
-                }
-                .foregroundStyle(.white)
-                .frame(height: 48)
-                .padding(.horizontal, 16)
-                .frame(maxWidth: 370)
-            }
-            .background(Color(.systemBlue))
-            .disabled(!formIsValid)
-            .opacity(formIsValid ? 1 : 0.5)
-            .clipShape(RoundedRectangle(cornerRadius: 10))
-            .padding(.top, 24)
-
-            
-            
-            Spacer()
-            
-            Button {
-                dismiss()
-            } label: {
-                HStack(spacing: 3) {
-                    Text("Already have an account?")
-                    Text("Log in")
-                        .fontWeight(.semibold)
+                Spacer()
+                                
+                Button {
+                    Task { await handleRegister() }
+                } label: {
+                    HStack {
+                        Text("Create new Account")
+                            .fontWeight(.semibold)
+                        Image(systemName: "arrow.right")
                     }
-                    .font(.system(size: 14))
+                    .foregroundStyle(.white)
+                    .frame(height: 48)
+                    .padding(.horizontal, 16)
+                    .frame(maxWidth: 370)
+                }
+                .background(Color(.systemBlue))
+                .disabled(!formIsValid)
+                .opacity(formIsValid ? 1 : 0.5)
+                .clipShape(RoundedRectangle(cornerRadius: 10))
+                .padding(.top, 24)
+            }
+            .sheet(isPresented: $showingLogin) {
+                  LoginView()
             }
         }
     }
-}
+    
+    private func handleRegister() async {
+        errorMessage = ""
+        isLoading = true
+        do {
+            try await networkManager.register(
+                username: username,
+                password: password,
+                email: email
+            )
+            
+            username = ""
+            email = ""
+            password = ""
+            confirmPassword = ""
+            
+            showingLogin = true
 
+        } catch {
+            errorMessage = "An unexpected error occurred"
+        }
+        isLoading = false
+    }
+}
 
 extension RegisterView: AuthenticationFormProtocol {
     var formIsValid: Bool {

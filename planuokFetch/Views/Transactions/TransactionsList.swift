@@ -9,42 +9,52 @@ import SwiftUI
 
 struct TransactionsList: View {
     
-    @StateObject var transactionViewModel = NetworkManager()
-
-
-        
-    var body: some View {
-        
-        NavigationStack{
-            
-            
-            List(transactionViewModel.transactions) { transaction in
-                HStack{
-                    Text(transaction.description)
-                    Text(transaction.category)
-                }
-            }
-            
-            Button {
-                transactionViewModel.getAllTransactions()
-
-            } label: {
-                Text("Get all transactions")
-            }
-            
-            
-            
-        }
-        .onAppear {
-                  transactionViewModel.getAllTransactions()
-              }
+    @EnvironmentObject var networkManager: NetworkManager
+    @State private var errorMessage = ""
+    @State private var isLoading = false
     
-
+    var body: some View {
+    
+        NavigationStack {
+            VStack {
+                List(networkManager.transactions) { transaction in
+                    Text(transaction.description)
+                    Text(transaction.transactionCategory)
+                    Text(transaction.creationDate, style: .date)
+                    Text(" \(transaction.amount)")
+                }
+            
+                Button(action: {
+                    Task {
+                        await handleTransactionsFetching()
+                    }
+                }) {
+                    if isLoading {
+                        ProgressView()
+                            .progressViewStyle(CircularProgressViewStyle(tint: .white))
+                    } else {
+                        Text("Get Transactions")
+                            .bold()
+                    }
+                }
+                .foregroundStyle(.white)
+                .frame(height: 48)
+                .frame(maxWidth: 370)
+                .background(Color(.systemBlue))
+                .cornerRadius(10)
+            }
+        }
+    }
+        
+    private func handleTransactionsFetching() async {
+        do {
+            try await networkManager.getUsersTransactions()
+        } catch {
+            errorMessage = "An unexpected error occured"
+        }
     }
 }
 
 #Preview {
-    TransactionsList()
+    TransactionsList().environmentObject(NetworkManager())
 }
-
-
