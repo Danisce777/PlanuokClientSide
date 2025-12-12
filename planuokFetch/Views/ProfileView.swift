@@ -8,8 +8,28 @@
 import SwiftUI
 
 struct ProfileView: View {
+    
+    
+    @EnvironmentObject var networkManager: NetworkManager
+    
     var body: some View {
-        Text(/*@START_MENU_TOKEN@*/"Hello, World!"/*@END_MENU_TOKEN@*/)
+        
+        NavigationStack {
+            
+            VStack {
+                
+                Button {
+                    Task {
+                        networkManager.logout()
+                    }
+                } label: {
+                    Text("Logout")
+                }
+                
+            }
+            
+        }
+        .navigationTitle(Text("Profile"))
     }
 }
 

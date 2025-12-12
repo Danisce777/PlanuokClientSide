@@ -47,6 +47,8 @@ struct TransactionsList: View {
     }
         
     private func handleTransactionsFetching() async {
+        
+        
         do {
             try await networkManager.getUsersTransactions()
         } catch {

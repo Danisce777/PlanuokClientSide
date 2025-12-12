@@ -47,7 +47,6 @@ struct UsersView: View {
                 .buttonStyle(BorderedButtonStyle())
             }
             
-            
             .onAppear{
                 networkManager.fetchUsers()
             }

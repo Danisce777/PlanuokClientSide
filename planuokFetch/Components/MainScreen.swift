@@ -46,13 +46,13 @@ struct MainScreen: View {
             }
             
             NavigationStack {
+                ProfileView()
             }
                 .tabItem {
                 Image(systemName: "person.fill")
                 Text("Profile")
             }
         }
-        
     }
 }
 
