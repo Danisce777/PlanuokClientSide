@@ -1,10 +1,3 @@
-//
-//  UserRequest.swift
-//  planuokFetch
-//
-//  Created by MacBook on 03/11/2025.
-//
-
 import Foundation
 
 struct UserRequest: Codable, Hashable, Identifiable {

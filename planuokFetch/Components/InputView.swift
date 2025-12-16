@@ -1,10 +1,3 @@
-//
-//  InputView.swift
-//  Planuok!
-//
-//  Created by MacBook on 02/09/2025.
-//
-
 import SwiftUI
 
 struct InputView: View {

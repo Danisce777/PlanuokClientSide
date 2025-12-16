@@ -1,10 +1,3 @@
-//
-//  NetworkManager.swift
-//  planuokFetch
-//
-//  Created by MacBook on 27/09/2025.
-//
-
 import Foundation
 import Combine
 
@@ -15,7 +8,7 @@ protocol AuthenticationFormProtocol {
 class NetworkManager: ObservableObject {
     
     @Published var users: [UserRequest] = []
-    @Published var transactions: [TransactionRequest] = []
+    @Published var transactions: [Transaction] = []
     @Published var isAuthenticated = false
     @Published var currentUser: AuthResponse?
     
@@ -121,8 +114,8 @@ class NetworkManager: ObservableObject {
 
         return request
     }
-    
-    func createTransaction(amount: Double, description: String, category: String, type: TransactionType, date: Date ) async throws {
+        
+    func createTransaction(amount: Double, description: String, categoryId: Int, type: TransactionType, date: Date ) async throws {
         
         guard let url = URL(string: "\(baseURL)/transactions") else {
             throw NetworkError.invalidURL
@@ -136,8 +129,8 @@ class NetworkManager: ObservableObject {
         let transactionData: [String: Any] = [
             "amount": amount,
             "description": description,
-            "transactionCategory": category,
-            "transactionType": type.rawValue.lowercased(),
+            "categoryId": categoryId,
+            "transactionType": type.rawValue.uppercased(),
         ]
         
         request.httpBody = try JSONSerialization.data(withJSONObject: transactionData)
@@ -156,8 +149,10 @@ class NetworkManager: ObservableObject {
             throw NetworkError.transactionFailed(statusCode: httpResponse.statusCode)
         }
         
-        let createdTransaction = try JSONDecoder().decode(TransactionRequest.self, from: data)
+        let createdTransaction = try JSONDecoder().decode(Transaction.self, from: data)
         print("Transaction created: \(createdTransaction)")
+        
+        try await getUsersTransactions()
     }
         
     func getUsersTransactions() async throws {
@@ -189,11 +184,43 @@ class NetworkManager: ObservableObject {
         let decoder = JSONDecoder()
         decoder.dateDecodingStrategy = .iso8601
         
-        let decodedData = try decoder.decode([TransactionRequest].self, from: data)
+        let decodedData = try decoder.decode([Transaction].self, from: data)
         
         DispatchQueue.main.async {
             self.transactions = decodedData
         }
+    }
+    
+    func getTransactionCategories(type: TransactionType) async throws -> [TransactionCategory] {
+                
+        guard let url = URL(string: "\(baseURL)/categories?type=\(type.rawValue)") else {
+            throw NetworkError.invalidURL
+        }
+        
+        let request = try createAuthenticatedRequest(url: url, method: "GET")
+
+        let (data, response) = try await URLSession.shared.data(for: request)
+
+        guard let httpResponse = response as? HTTPURLResponse else {
+               throw NetworkError.invalidResponse
+        }
+        
+        guard httpResponse.statusCode == 200 else {
+            if httpResponse.statusCode == 401 {
+                logout()
+                throw NetworkError.unauthorized
+            }
+            throw NetworkError.fetchFailed(statusCode: httpResponse.statusCode)
+        }
+        
+        if let json = String(data: data, encoding: .utf8) {
+            print("Categories JSON:", json)
+        }
+        
+        let decoder = JSONDecoder()
+        decoder.dateDecodingStrategy = .iso8601
+                
+        return try decoder.decode([TransactionCategory].self, from: data)
     }
     
     func fetchUsers(){

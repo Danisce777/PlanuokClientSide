@@ -1,10 +1,3 @@
-//
-//  LoginView.swift
-//  planuokFetch
-//
-//  Created by MacBook on 05/11/2025.
-//
-
 import SwiftUI
 
 struct LoginView: View {

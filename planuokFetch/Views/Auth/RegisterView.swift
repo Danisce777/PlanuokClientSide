@@ -1,12 +1,4 @@
-//
-//  RegisterView.swift
-//  planuokFetch
-//
-//  Created by MacBook on 28/09/2025.
-//
-
 import SwiftUI
-
 
 struct RegisterView: View {
     

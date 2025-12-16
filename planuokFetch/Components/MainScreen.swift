@@ -1,10 +1,3 @@
-//
-//  MainScreen.swift
-//  planuokFetch
-//
-//  Created by MacBook on 12/11/2025.
-//
-
 import SwiftUI
 
 struct MainScreen: View {
@@ -53,9 +46,10 @@ struct MainScreen: View {
                 Text("Profile")
             }
         }
+        .background(Color(.blue))
     }
 }
 
 #Preview {
-    MainScreen()
+    MainScreen().environmentObject(NetworkManager())
 }

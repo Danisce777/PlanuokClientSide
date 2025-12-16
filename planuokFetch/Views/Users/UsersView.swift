@@ -1,10 +1,3 @@
-//
-//  ContentView.swift
-//  planuokFetch
-//
-//  Created by MacBook on 27/09/2025.
-//
-
 import SwiftUI
 
 struct UsersView: View {

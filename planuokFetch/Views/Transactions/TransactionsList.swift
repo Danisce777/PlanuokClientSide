@@ -1,10 +1,3 @@
-//
-//  TransactionsList.swift
-//  planuokFetch
-//
-//  Created by MacBook on 21/11/2025.
-//
-
 import SwiftUI
 
 struct TransactionsList: View {
@@ -12,17 +5,39 @@ struct TransactionsList: View {
     @EnvironmentObject var networkManager: NetworkManager
     @State private var errorMessage = ""
     @State private var isLoading = false
-    
+        
+    private func categoryIcon(for name: String) -> String {
+        switch name.uppercased() {
+        case "food": return "fork.knife"
+        case "transport": return "car"
+        case "salary": return "banknote"
+        case "shopping": return "bag"
+        case "entertainment": return "music.note"
+        default: return "tag"
+        }
+    }
+        
     var body: some View {
-    
         NavigationStack {
-            VStack {
-                List(networkManager.transactions) { transaction in
-                    Text(transaction.description)
-                    Text(transaction.transactionCategory)
-                    Text(transaction.creationDate, style: .date)
-                    Text(" \(transaction.amount)")
+            List(networkManager.transactions) { transaction in
+                HStack {
+                    Image(systemName: categoryIcon(for: transaction.category.name))
+                        .font(.title2)
+                    
+                    VStack(alignment: .leading) {
+                        Text(transaction.description)
+                        Text(transaction.category.name)
+                        Text(transaction.creationDate, style: .date)
+                    }
+                    Spacer()
                 }
+                
+                Spacer()
+                
+                Text(transaction.transactionType == .income ? "+$\(transaction.amount, specifier: "%.2f")" : "-$\(transaction.amount, specifier: "%.2f")")
+                                    .font(.headline)
+                                    .bold()
+                
             
                 Button(action: {
                     Task {
@@ -43,17 +58,21 @@ struct TransactionsList: View {
                 .background(Color(.systemBlue))
                 .cornerRadius(10)
             }
+            .onAppear()
         }
     }
         
     private func handleTransactionsFetching() async {
-        
+        isLoading = true
+        errorMessage = ""
         
         do {
             try await networkManager.getUsersTransactions()
         } catch {
             errorMessage = "An unexpected error occured"
         }
+        
+        isLoading = false
     }
 }
 

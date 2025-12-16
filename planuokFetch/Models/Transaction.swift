@@ -1,25 +1,32 @@
-//
-//  Transaction.swift
-//  planuokFetch
-//
-//  Created by MacBook on 28/09/2025.
-//
-
-
 import Foundation
 import Combine
 
-struct Transaction: Codable {
+struct Transaction: Codable, Identifiable {
     
-    let transactionId: Int64?
+    let transactionId: Int
     let description: String
     let amount: Double
+    let creator: Creator
     let creationDate: Date
-    let transactionCategory: String
     let transactionType: TransactionType
+    let category: TransactionCategory
+    
+    var id: Int {
+        return transactionId
+    }
+    
+    enum CodingKeys: String, CodingKey {
+        case transactionId, description, amount, creator, creationDate, transactionType, category
+    }
 }
 
 enum TransactionType: String, Codable  {
-    case income
-    case expense
+    case income = "INCOME"
+    case expense = "EXPENSE"
+}
+
+struct Creator: Codable {
+    let id: Int
+    let username: String
+    let email: String
 }
