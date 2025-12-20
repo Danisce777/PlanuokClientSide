@@ -3,12 +3,17 @@ import SwiftUI
 @main
 struct planuokFetchApp: App {
     
-    @StateObject private var networkManager = NetworkManager()
+    @StateObject private var authService = AuthService()
+    @StateObject private var categoryService = CategoryService()
+    @StateObject private var transactionService = TransactionService()
 
     var body: some Scene {
         WindowGroup {
             ContentView()
-            .environmentObject(networkManager)
+            .environmentObject(authService)
+            .environmentObject(categoryService)
+            .environmentObject(transactionService)
+
         }
     }
 }

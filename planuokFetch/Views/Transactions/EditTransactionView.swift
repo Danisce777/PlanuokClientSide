@@ -1,9 +1,12 @@
 import SwiftUI
 
-struct AddTransactionView: View {
+struct EditTransactionView: View {
     
+    let transaction: Transaction
+
     @EnvironmentObject var transactionService: TransactionService
     @EnvironmentObject var categoryService: CategoryService
+    @Environment(\.dismiss) var dismiss
     
     @State private var title: String = ""
     @State private var amount: String = ""
@@ -17,11 +20,21 @@ struct AddTransactionView: View {
     @State private var categoryName = ""
     @State private var categoryType: TransactionType = .expense
     
+    @State private var showCategoryCreation = false
     @State private var errorMessage = ""
     @State private var isLoading = false
     @State private var showSuccess = false
-    @State private var showCategoryCreation = false
 
+    init(transaction: Transaction) {
+        self.transaction = transaction
+        _title = State(initialValue: transaction.title)
+        _amount = State(initialValue: String(format: "%.2f", transaction.amount))
+        _description = State(initialValue: transaction.description)
+        _selectedCategoryId = State(initialValue: transaction.category.id)
+        _type = State(initialValue: transaction.transactionType)
+        _occurredDate = State(initialValue: transaction.occurredDate)
+    }
+    
     var body: some View {
         NavigationStack {
             VStack {
@@ -86,10 +99,6 @@ struct AddTransactionView: View {
                         }
                         
                         DatePicker("Date", selection: $occurredDate, displayedComponents: .date)
-                    } header: {
-                        Text("Transaction Details")
-                            .font(.subheadline)
-                            .fontWeight(.semibold)
                     }
                     
                     if !errorMessage.isEmpty {
@@ -102,65 +111,72 @@ struct AddTransactionView: View {
                             .font(.footnote)
                         }
                     }
-                }
-                
-                VStack(spacing: 12) {
-                    Button(action: {
-                        Task {
-                            await handleAddTransaction()
-                        }
-                    }) {
-                        HStack {
-                            if isLoading {
-                                ProgressView()
-                                    .tint(.white)
-                            } else {
-                                Image(systemName: "plus.circle.fill")
-                                Text("Add Transaction")
-                            }
-                        }
-                        .frame(maxWidth: .infinity)
-                        .frame(height: 50)
-                        .fontWeight(.semibold)
-                        
-                    }
-                    .disabled(isLoading || selectedCategoryId == nil || title.isEmpty)
-                    .buttonStyle(.borderedProminent)
-                    .padding()
-                    .tint(type == .income ? .green : .red)
                     
-                    if selectedCategoryId == nil && !categories.isEmpty {
-                        Text("Please select a category to continue")
-                            .font(.caption)
-                            .foregroundColor(.secondary)
+                    Section {
+                        HStack(spacing: 10) {
+                            Button(action: {
+                                dismiss()
+                            }) {
+                                Text("Cancel")
+                                    .frame(maxWidth: .infinity)
+                                    .fontWeight(.semibold)
+                            }
+                            .buttonStyle(.bordered)
+                            .tint(.red)
+                            
+                            Button(action: {
+                                Task {
+                                    await handleEditTransaction()
+                                }
+                            }) {
+                                if isLoading {
+                                    ProgressView()
+                                        .frame(maxWidth: .infinity)
+                                } else {
+                                    Text("Save Changes")
+                                        .frame(maxWidth: .infinity)
+                                        .fontWeight(.semibold)
+                                }
+                            }
+                            .buttonStyle(.borderedProminent)
+                            .disabled(isLoading)
+                        }
                     }
                 }
             }
-            
-            .navigationTitle("Add Transaction")
-            .navigationBarTitleDisplayMode(.inline)
-            .task { await loadCategories() }
-            .alert("Success!", isPresented: $showSuccess) {
-                Button("OK") {
-                    clearForm()
+        }
+        .navigationTitle("Edit Transaction")
+        .navigationBarTitleDisplayMode(.inline)
+        .toolbar {
+            ToolbarItem(placement: .cancellationAction) {
+                Button("Cancel") {
+                    dismiss()
                 }
-            } message: {
-                Text("Transaction added successfully")
             }
-            .sheet(isPresented: $showCategoryCreation) {
-                Task {
-                    await loadCategories()
-                }
-            } content: {
-                CategoryCreationView()
-                      .environmentObject(categoryService)
-                      .presentationDetents([.medium])
-                      .presentationDragIndicator(.visible)
+        }
+        
+        .task {
+             await loadCategories()
+         }
+        
+        .alert("Success!", isPresented: $showSuccess) {
+            Button("OK") {
+                dismiss()
             }
+        } message: {
+            Text("Transaction updated successfully")
         }
     }
     
-    private func handleAddTransaction() async {
+    private func loadCategories() async {
+        do {
+            categories = try await categoryService.getTransactionCategories(type: type)
+        } catch {
+            errorMessage = error.localizedDescription + "Uknown error occurred. Please try again later."
+        }
+    }
+    
+    private func handleEditTransaction() async {
         errorMessage = ""
         
         guard let amountValue = Double(amount), amountValue > 0 else {
@@ -176,47 +192,45 @@ struct AddTransactionView: View {
         isLoading = true
         
         do {
-            let _ = try await transactionService.createTransaction(
+            let _ = try await transactionService.modifyTransaction(
+                by: transaction.transactionId,
+                title: title,
                 amount: amountValue,
                 description: description,
                 categoryId: categoryId,
                 type: type,
-                date: date,
-                occurredDate: occurredDate,
-                title: title
+                occurredDate: occurredDate
             )
+            
+            try await transactionService.getUsersTransactions()
+            
+            isLoading = false
             showSuccess = true
             
         } catch {
             errorMessage = error.localizedDescription
-        }
-        
-        isLoading = false
-    }
-    
-
-    private func loadCategories() async {
-        do {
-            categories = try await categoryService.getTransactionCategories(type: type)
-        } catch {
-            errorMessage = error.localizedDescription + "Uknown error occurred. Please try again later."
+            isLoading = false
         }
     }
-    
-    private func clearForm() {
-        title = ""
-        amount = ""
-        description = ""
-        selectedCategoryId = nil
-        type = .expense
-        date = Date()
-        occurredDate = Date()
-    }
-    
 }
-    
+
 #Preview {
-    AddTransactionView()
+    let dummyUser = Creator(id: 1, username: "John", email: "john@example.com")
+    let foodCategory = TransactionCategory(id: 1, name: "food", type: .expense, isDefault: false)
+    
+    let mockTransaction = Transaction(
+        transactionId: 101,
+        title: "Grocery Shopping",
+        description: "Weekly market run",
+        amount: 50.0,
+        creator: dummyUser,
+        creationDate: Date(),
+        transactionType: .expense,
+        category: foodCategory,
+        occurredDate: Date()
+    )
+    
+    return EditTransactionView(transaction: mockTransaction)
         .environmentObject(TransactionService())
         .environmentObject(CategoryService())
 }

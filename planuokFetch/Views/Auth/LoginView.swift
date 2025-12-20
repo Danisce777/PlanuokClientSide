@@ -2,7 +2,7 @@ import SwiftUI
 
 struct LoginView: View {
     
-    @EnvironmentObject var networkManager: NetworkManager
+    @EnvironmentObject var authService: AuthService
     @State private var email: String = ""
     @State private var password: String = ""
     @State private var errorMessage = ""
@@ -34,7 +34,9 @@ struct LoginView: View {
                     placeholder: "Enter your password",
                     isSecureField: true)
                 .textInputAutocapitalization(.never)
-                .textContentType(.newPassword)
+                .textContentType(.none)
+                .autocorrectionDisabled(true)
+                .textInputAutocapitalization(.never)
                 
                 if !errorMessage.isEmpty {
                         Text(errorMessage)
@@ -86,7 +88,7 @@ struct LoginView: View {
         isLoading = true
         
         do {
-            try await networkManager.login(email: email, password: password)
+            try await authService.login(email: email, password: password)
         } catch {
             errorMessage = "An unexpected error occured"
         }

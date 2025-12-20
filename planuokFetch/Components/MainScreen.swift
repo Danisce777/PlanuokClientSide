@@ -2,7 +2,9 @@ import SwiftUI
 
 struct MainScreen: View {
     
-    @EnvironmentObject var networkManager: NetworkManager
+    @EnvironmentObject private var authService: AuthService
+    @EnvironmentObject private var categoryService: CategoryService
+    @EnvironmentObject private var transactionService: TransactionService
     
     var body: some View {
         
@@ -51,5 +53,8 @@ struct MainScreen: View {
 }
 
 #Preview {
-    MainScreen().environmentObject(NetworkManager())
+    MainScreen()
+    .environmentObject(CategoryService())
+    .environmentObject(TransactionService())
+
 }

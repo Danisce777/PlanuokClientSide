@@ -2,7 +2,7 @@ import SwiftUI
 
 struct RegisterView: View {
     
-    @EnvironmentObject var networkManager: NetworkManager
+    @EnvironmentObject var authService: AuthService
     @Environment(\.dismiss) var dismiss
 
     @State private var username: String = ""
@@ -102,7 +102,7 @@ struct RegisterView: View {
         errorMessage = ""
         isLoading = true
         do {
-            try await networkManager.register(
+            try await authService.register(
                 username: username,
                 password: password,
                 email: email

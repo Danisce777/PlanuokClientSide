@@ -4,6 +4,7 @@ import Combine
 struct Transaction: Codable, Identifiable {
     
     let transactionId: Int
+    let title: String
     let description: String
     let amount: Double
     let creator: Creator
@@ -11,12 +12,14 @@ struct Transaction: Codable, Identifiable {
     let transactionType: TransactionType
     let category: TransactionCategory
     
+    let occurredDate: Date
+    
     var id: Int {
         return transactionId
     }
     
     enum CodingKeys: String, CodingKey {
-        case transactionId, description, amount, creator, creationDate, transactionType, category
+        case transactionId, description, amount, creator, creationDate, transactionType, category, occurredDate, title
     }
 }
 
