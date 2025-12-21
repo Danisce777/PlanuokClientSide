@@ -56,5 +56,4 @@ struct MainScreen: View {
     MainScreen()
     .environmentObject(CategoryService())
     .environmentObject(TransactionService())
-
 }

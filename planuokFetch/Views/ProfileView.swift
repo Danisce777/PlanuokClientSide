@@ -5,14 +5,6 @@ struct ProfileView: View {
     @EnvironmentObject var authService: AuthService
     @EnvironmentObject var transactionService: TransactionService
     @EnvironmentObject var categoryService: CategoryService
-
-    /*
-     MARK: Add date account created
-     Add Profile Picture
-     Username and other stuff
-     Logout option
-     
-    */
     
     var body: some View {
         NavigationStack {
@@ -23,7 +15,6 @@ struct ProfileView: View {
                         Text("Username: \(user.username)")
                         Text("Email: \(user.email)")
                         
-//                        Text(user.creationDate)
                     }
                 }
             }

@@ -1,8 +1,6 @@
 import Foundation
 import Combine
 
-
-
 class TransactionService: ObservableObject {
     
     @Published var users: [UserRequest] = []

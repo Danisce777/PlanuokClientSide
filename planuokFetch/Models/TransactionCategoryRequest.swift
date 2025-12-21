@@ -1,9 +1,3 @@
-//
-//  TransactionCategoryRequest.swift
-//  planuokFetch
-//
-//  Created by MacBook on 17/12/2025.
-//
 
 import Foundation
 
